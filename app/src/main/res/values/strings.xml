@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">HealthApp</string>
+    <string name="miss_click_count">Miss click count : %d</string>
+    <string name="typing_errors_count_text">Typing errors count : %d</string>
+    <string name="showBounds">Show bounds for missclick</string>
+    <string name="miss_click_max_diff_label_text">Max difference : %d</string>
+    <string name="miss_click_title">MissClick</string>
+    <string name="typing_error_title">TypingErrors</string>
+</resources>
