@@ -12,6 +12,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var module: AppModule
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         this.inject()
         super.onCreate(savedInstanceState)

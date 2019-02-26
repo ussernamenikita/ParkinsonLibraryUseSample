@@ -18,10 +18,11 @@ interface TremorDao : BaseDao<TremorEventEntity> {
     fun clear()
 }
 
-@Database(entities = arrayOf(TremorEventEntity::class, TypingErrorsEntity::class,MissClickEntity::class), version = 1)
+@Database(entities = [TremorEventEntity::class, TypingErrorsEntity::class, MissClickEntity::class, UserActivityEntity::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tremorDao(): TremorDao
     abstract fun typingErrorDao(): TypingErrorsDao
-    abstract fun missClickDao():MissClickDao
+    abstract fun missClickDao(): MissClickDao
+    abstract fun userActivityDao(): UserActivityDao
 }
 

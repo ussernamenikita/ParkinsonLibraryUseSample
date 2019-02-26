@@ -2,32 +2,14 @@ package com.bulygin.nikita.healthapp.data
 
 import com.bulygin.nikita.healthapp.ui.MissClickEventsConsumer
 import io.reactivex.Scheduler
-import io.reactivex.disposables.Disposable
-import java.util.concurrent.ConcurrentLinkedQueue
 
-class SimpleMissClickConsumer(private val missClickDao: MissClickDao,
-                              private val backgroundScheduler: Scheduler) : MissClickEventsConsumer {
+class SimpleMissClickConsumer(missClickDao: MissClickDao,
+                              backgroundScheduler: Scheduler) : MissClickEventsConsumer,
+        BaseConsumer<MissClickEntity>(missClickDao, backgroundScheduler) {
 
-    private val missClickContainer = ConcurrentLinkedQueue<MissClickEntity>()
-    private var lastScheduled: Disposable? = null
 
     override fun onConsume(timestamp: Long, distance: Double, missClickCount: Int) {
-        missClickContainer.offer(MissClickEntity(null, timestamp, distance))
-        startInsertIfNeed()
+        this.onNewItem(MissClickEntity(null, timestamp, distance))
     }
-
-    private fun startInsertIfNeed() {
-        if (lastScheduled == null || lastScheduled?.isDisposed!!) {
-            lastScheduled = backgroundScheduler.createWorker().schedule {
-                do {
-                    val item = missClickContainer.poll()
-                    item?.let { missClickDao.insert(item) }
-                } while (item != null)
-            }
-        }
-    }
-
-
-    private fun getCurrentTime(): Long = System.currentTimeMillis()
 
 }
