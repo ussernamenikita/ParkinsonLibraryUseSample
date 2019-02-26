@@ -223,7 +223,7 @@ class ViewTracker(val view: View,
             closeEvents.find { timeStamp - it.timestamp < trackingTimeout } != null
 
     private fun isClickOnView(event: MotionEvent): Boolean {
-        return lastAction == MotionEvent.ACTION_DOWN && event.action == MotionEvent.ACTION_UP
+        return (lastAction == MotionEvent.ACTION_DOWN || lastAction == MotionEvent.ACTION_MOVE) && event.action == MotionEvent.ACTION_UP
     }
 
     private fun isOnView(view: View, event: MotionEvent): Boolean {
