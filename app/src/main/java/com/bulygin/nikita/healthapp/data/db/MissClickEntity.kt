@@ -1,4 +1,4 @@
-package com.bulygin.nikita.healthapp.data
+package com.bulygin.nikita.healthapp.data.db
 
 import android.arch.persistence.room.*
 

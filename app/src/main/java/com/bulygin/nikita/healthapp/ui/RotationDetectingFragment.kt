@@ -44,6 +44,7 @@ class RotationDetectingFragment : Fragment() {
         updateValues(0.0, 0.0, 0.0)
         subscription?.dispose()
         subscription = rotationRepo.getOrientation().subscribeOn(uiScheduler).subscribe({
+
             updateValues(it[0].toDouble(), it[1].toDouble(), it[2].toDouble())
         }, {
             it.printStackTrace()

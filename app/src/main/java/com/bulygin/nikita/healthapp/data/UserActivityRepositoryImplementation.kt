@@ -1,6 +1,8 @@
 package com.bulygin.nikita.healthapp.data
 
 import android.content.Context
+import com.bulygin.nikita.healthapp.data.db.UserActivityDao
+import com.bulygin.nikita.healthapp.data.db.UserActivityEntity
 import com.bulygin.nikita.healthapp.domain.UserActivity
 import com.bulygin.nikita.healthapp.domain.UserActivityRepository
 import com.google.android.gms.location.DetectedActivity

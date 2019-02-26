@@ -13,6 +13,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
 import com.bulygin.nikita.healthapp.R
+import com.bulygin.nikita.healthapp.data.db.AppDatabase
 
 
 class TremorDetectingService : Service() {

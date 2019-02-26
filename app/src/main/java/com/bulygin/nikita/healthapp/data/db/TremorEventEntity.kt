@@ -1,4 +1,4 @@
-package com.bulygin.nikita.healthapp.data
+package com.bulygin.nikita.healthapp.data.db
 
 import android.arch.persistence.room.*
 
@@ -16,13 +16,5 @@ interface TremorDao : BaseDao<TremorEventEntity> {
 
     @Query("DELETE FROM TremorEventEntity")
     fun clear()
-}
-
-@Database(entities = [TremorEventEntity::class, TypingErrorsEntity::class, MissClickEntity::class, UserActivityEntity::class], version = 1)
-abstract class AppDatabase : RoomDatabase() {
-    abstract fun tremorDao(): TremorDao
-    abstract fun typingErrorDao(): TypingErrorsDao
-    abstract fun missClickDao(): MissClickDao
-    abstract fun userActivityDao(): UserActivityDao
 }
 

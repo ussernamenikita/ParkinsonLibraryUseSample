@@ -3,6 +3,7 @@ package com.bulygin.nikita.healthapp.di
 import android.arch.persistence.room.Room
 import com.bulygin.nikita.healthapp.R
 import com.bulygin.nikita.healthapp.data.*
+import com.bulygin.nikita.healthapp.data.db.AppDatabase
 import com.bulygin.nikita.healthapp.domain.IRotationDetectorRepository
 import com.bulygin.nikita.healthapp.domain.UserActivityRepository
 import com.bulygin.nikita.healthapp.ui.*
@@ -20,7 +21,8 @@ class AppModule(private val activity: MainActivity) {
             this.database = Room.databaseBuilder(
                     activity.application,
                     AppDatabase::class.java, "database-name"
-            ).build()
+            ).fallbackToDestructiveMigration()
+                    .build()
         }
         return this.database!!
     }
@@ -35,7 +37,7 @@ class AppModule(private val activity: MainActivity) {
 
     fun createHealthPagerAdapter(): HealthPagerAdapter {
         return HealthPagerAdapter(activity.supportFragmentManager,
-                arrayOf(MissClickFragment(), TypingErrorsFragment(), UserActivityFragment(),RotationDetectingFragment()),
+                arrayOf(MissClickFragment(), TypingErrorsFragment(), UserActivityFragment(), RotationDetectingFragment()),
                 arrayOf(activity.getString(R.string.miss_click_title),
                         activity.getString(R.string.typing_error_title),
                         activity.getString(R.string.user_activity_title),
@@ -54,7 +56,7 @@ class AppModule(private val activity: MainActivity) {
 
     fun getUIScheduler(): Scheduler = AndroidSchedulers.mainThread()
 
-    fun getRotationDetectorRepo():IRotationDetectorRepository = RotationDetectorRepositoryAccelAndMagneticSensorImpl(activity)
+    fun getRotationDetectorRepo(): IRotationDetectorRepository = RotationDetectorRepositoryAccelAndMagneticSensorImpl(activity, createDatabase().orientationDao(), Schedulers.computation())
 
 
 }

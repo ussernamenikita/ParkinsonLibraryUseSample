@@ -1,17 +1,15 @@
     package com.bulygin.nikita.healthapp.data;
 
 import android.content.Context;
-import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.Log;
 
-import com.bulygin.nikita.healthapp.data.AppDatabase;
-import com.bulygin.nikita.healthapp.data.TremorDao;
-import com.bulygin.nikita.healthapp.data.TremorEventEntity;
+import com.bulygin.nikita.healthapp.data.db.TremorDao;
+import com.bulygin.nikita.healthapp.data.db.TremorEventEntity;
 
-public class TremorListener implements SensorEventListener {
+    public class TremorListener implements SensorEventListener {
 
     private final TremorDao mDao;
     private long mShakeTimestamp = 0;

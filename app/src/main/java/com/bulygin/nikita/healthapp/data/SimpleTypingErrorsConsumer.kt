@@ -1,5 +1,7 @@
 package com.bulygin.nikita.healthapp.data
 
+import com.bulygin.nikita.healthapp.data.db.TypingErrorsDao
+import com.bulygin.nikita.healthapp.data.db.TypingErrorsEntity
 import com.bulygin.nikita.healthapp.ui.TextListener
 import io.reactivex.Scheduler
 

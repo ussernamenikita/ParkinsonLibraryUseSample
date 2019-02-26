@@ -6,13 +6,16 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.support.v7.app.AppCompatActivity
+import com.bulygin.nikita.healthapp.data.db.BaseDao
+import com.bulygin.nikita.healthapp.data.db.OrientationEntity
 import com.bulygin.nikita.healthapp.domain.IRotationDetectorRepository
+import com.bulygin.nikita.healthapp.domain.Orientation
 import io.reactivex.Observable
-import android.support.v4.content.ContextCompat.getSystemService
+import io.reactivex.Scheduler
 
 
+class RotationDetectorRepositoryAccelAndMagneticSensorImpl(activity: AppCompatActivity, dao: BaseDao<OrientationEntity>, scheduler: Scheduler) : IRotationDetectorRepository, BaseConsumer<OrientationEntity>(dao, scheduler) {
 
-class RotationDetectorRepositoryAccelAndMagneticSensorImpl(activity: AppCompatActivity) : IRotationDetectorRepository {
 
     private val sensorManager = activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val magneticSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
@@ -25,19 +28,19 @@ class RotationDetectorRepositoryAccelAndMagneticSensorImpl(activity: AppCompatAc
         val sensorObs = Observable.create<Array<Float>> { emitter ->
             sensorEventListener = object : SensorEventListener {
 
-                private var magneticValue :FloatArray? = null
-                private var accelerationValue :FloatArray? = null
+                private var magneticValue: FloatArray? = null
+                private var accelerationValue: FloatArray? = null
 
                 override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
                 override fun onSensorChanged(event: SensorEvent?) {
                     if (event != null && !emitter.isDisposed) {
-                        when(event.sensor.type){
-                            Sensor.TYPE_ACCELEROMETER-> accelerationValue = event.values
-                            Sensor.TYPE_MAGNETIC_FIELD-> magneticValue = event.values
+                        when (event.sensor.type) {
+                            Sensor.TYPE_ACCELEROMETER -> accelerationValue = event.values
+                            Sensor.TYPE_MAGNETIC_FIELD -> magneticValue = event.values
                         }
-                        val d = getDataFromSensors(magneticValue,accelerationValue)
-                        d?.let{emitter.onNext(d)}
+                        val d = getDataFromSensors(magneticValue, accelerationValue)
+                        d?.let { emitter.onNext(d) }
                     }
                 }
 
@@ -54,34 +57,20 @@ class RotationDetectorRepositoryAccelAndMagneticSensorImpl(activity: AppCompatAc
     }
 
     private fun getDataFromSensors(magneticValue: FloatArray?, accelerationValue: FloatArray?): Array<Float>? {
-        if(magneticValue == null || accelerationValue == null){
+        if (magneticValue == null || accelerationValue == null) {
             return null
         }
         val rotationMatrix = FloatArray(9)
-        val rotationOK = SensorManager.getRotationMatrix(rotationMatrix,null, accelerationValue, magneticValue)
+        val rotationOK = SensorManager.getRotationMatrix(rotationMatrix, null, accelerationValue, magneticValue)
         val orientationValues = FloatArray(3)
         if (rotationOK) {
             SensorManager.getOrientation(rotationMatrix, orientationValues)
-            return arrayOf(orientationValues[0]*(180f/3.14159265358979323846f),orientationValues[1]*(180f/3.14159265358979323846f),orientationValues[2]*(180f/3.14159265358979323846f))
-        }else{
+            return arrayOf(orientationValues[0] * (180f / 3.14159265358979323846f), orientationValues[1] * (180f / 3.14159265358979323846f), orientationValues[2] * (180f / 3.14159265358979323846f))
+        } else {
             return null
         }
     }
 
-    private fun transformToAircraft(rotationVector: FloatArray): Array<Float> {
-        val rotationMatrix = FloatArray(9)
-        SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVector)
-
-        val worldAxisForDeviceAxisX: Int
-        val worldAxisForDeviceAxisY: Int
-
-
-
-        // Transform rotation matrix into azimuth/pitch/roll
-        val orientation = FloatArray(3)
-        SensorManager.getOrientation(rotationMatrix, orientation)
-        return arrayOf(Math.toDegrees(orientation[0].toDouble()).toFloat(), Math.toDegrees(orientation[1].toDouble()).toFloat(), Math.toDegrees(orientation[2].toDouble()).toFloat())
-    }
 
     private fun getSensorList() {
 
@@ -103,6 +92,10 @@ class RotationDetectorRepositoryAccelAndMagneticSensorImpl(activity: AppCompatAc
             iIndex++
         }
         println(strLog.toString())
+    }
+
+    override fun saveOrientationToDatabase(orientation: Orientation) {
+        this.onNewItem(OrientationEntity(null, orientation.timestamp, arrayOf(orientation.x, orientation.y, orientation.z)))
     }
 
 }

@@ -1,5 +1,6 @@
 package com.bulygin.nikita.healthapp.data
 
+import com.bulygin.nikita.healthapp.data.db.BaseDao
 import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
 import java.util.concurrent.ConcurrentLinkedQueue
