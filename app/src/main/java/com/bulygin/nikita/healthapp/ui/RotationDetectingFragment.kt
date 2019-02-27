@@ -58,7 +58,7 @@ class RotationDetectingFragment : Fragment() {
         zValueTv.text = mContext.getString(R.string.rotation_z_value, toString(z))
     }
 
-    private fun toString(value: Double): String = String.format(Locale.ENGLISH, "%.2f", value)
+    private fun toString(value: Double): String = Math.abs(value).toInt().toString()
 
 
     override fun onDestroyView() {

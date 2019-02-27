@@ -12,4 +12,5 @@
     <string name="rotation_x_value">Rotate in x: %s</string>
     <string name="rotation_y_value">Rotate in y: %s</string>
     <string name="rotation_z_value">Rotate in z: %s</string>
+    <string name="no_sensor_detected_for_rotation_detection">No sensors needed to determine the orientation of the device were detected on your phone.</string>
 </resources>
