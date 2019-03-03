@@ -10,20 +10,28 @@ import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 import com.bulygin.nikita.healthapp.R
-import com.bulygin.nikita.healthapp.di.AppModule
+import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import ru.etu.parkinsonlibrary.database.consumer.DatabaseMissClickConsumer
+import ru.etu.parkinsonlibrary.di.DependencyProducer
+import ru.etu.parkinsonlibrary.missclick.MissClickEventsConsumer
+import ru.etu.parkinsonlibrary.missclick.TrackingViewGroup
 
 class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBarChangeListener {
     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
     override fun onStopTrackingTouch(seekBar: SeekBar?) {}
 
-    private lateinit var module: AppModule
+    private lateinit var module: DependencyProducer
 
-    private lateinit var missClickConsumer: MissClickEventsConsumer
+    private lateinit var missClickConsumer: DatabaseMissClickConsumer
 
     private lateinit var missClickResults: TextView
 
     private lateinit var rootView: View
+
+    private lateinit var uiScheduler: Scheduler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,13 +43,16 @@ class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBar
             return
         }
         val a = activity as MainActivity
-        module = a.module
-        missClickConsumer = module.createMissClickErrorConsumer()
+        module = DependencyProducer(a.application)
+        missClickConsumer = module.createDatabaseMissclickConsumer()
+        uiScheduler = AndroidSchedulers.mainThread()
     }
 
     private lateinit var trackingViewGroup: TrackingViewGroup
 
     private lateinit var maxDistanceTv: TextView
+
+    private var outputDisposable: Disposable? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         this.rootView = inflater.inflate(R.layout.miss_click_fragment_layout, container, false)
@@ -51,7 +62,7 @@ class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBar
         val seekBar = rootView.findViewById<SeekBar>(R.id.miss_click_max_difference_seek_bar)
         this.missClickResults = rootView.findViewById(R.id.tracjing_view_miss_click_count_tv)
         this.maxDistanceTv = rootView.findViewById(R.id.missclick_max_diff_tv)
-        trackingViewGroup.addTrackingView(btn)
+        trackingViewGroup.addTrackedView(btn)
         trackingViewGroup.consumer = this
         sw.setOnCheckedChangeListener { _, isChecked ->
             trackingViewGroup.drawRect = isChecked
@@ -59,7 +70,11 @@ class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBar
         }
         seekBar.setOnSeekBarChangeListener(this)
         updateMissClickCount(0)
-        //btn.setOnClickListener { Schedulers.computation().createWorker().schedule { database.typingErrorDao().getAll().forEach { item -> println(item) } } }
+        btn.setOnClickListener {
+            if (outputDisposable == null || outputDisposable!!.isDisposed) {
+                outputDisposable = missClickConsumer.getAsCsv().observeOn(uiScheduler).subscribe({ res -> println(res) }, { t -> t.printStackTrace() })
+            }
+        }
         return rootView
     }
 

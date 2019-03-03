@@ -8,31 +8,33 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
 import com.bulygin.nikita.healthapp.R
-import com.bulygin.nikita.healthapp.data.SimpleTypingErrorsConsumer
-import com.bulygin.nikita.healthapp.di.AppModule
+import ru.etu.parkinsonlibrary.database.consumer.DatabaseTypingErrorConsumer
+import ru.etu.parkinsonlibrary.di.DependencyProducer
+import ru.etu.parkinsonlibrary.typingerror.TypingErrorTextListeer
 
-class TypingErrorsFragment : Fragment(), TextListener.TypingErrorConsumer {
+class TypingErrorsFragment : Fragment(), TypingErrorTextListeer.TypingErrorConsumer {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.inject()
     }
 
-    private lateinit var module: AppModule
+    private lateinit var module: DependencyProducer
 
     private fun inject() {
         if (activity == null) {
             return
         }
         if (activity is MainActivity) {
-            this.module = (activity as MainActivity).module
+            this.module = DependencyProducer(activity!!.application)
         }
-        textListener = TextListener(this)
-        this.typingErrorsConsumer = module.createTypingErrorConsumer()
+        textListener = TypingErrorTextListeer(this)
+        this.typingErrorsConsumer = module.createDatabaseTypingErrorConsumer()
     }
 
-    lateinit var textListener: TextListener
-    lateinit var typingErrorsConsumer: SimpleTypingErrorsConsumer
+    lateinit var textListener: TypingErrorTextListeer
 
+    lateinit var typingErrorsConsumer: DatabaseTypingErrorConsumer
     private lateinit var typingErrorsCount: TextView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -41,20 +43,14 @@ class TypingErrorsFragment : Fragment(), TextListener.TypingErrorConsumer {
         this.typingErrorsCount = rootView.findViewById(R.id.typing_erorrs_count_tv)
         editText.addTextChangedListener(textListener)
         textListener.consumer = this
-        updateCountText(0)
         return rootView
     }
 
-
-    override fun onWordTypingEnd(s: String, eraseCount: Int) {
+    override fun onEvent(currentTimestamp: Long, changes: CharSequence, l: Long) {
         if (activity != null) {
-            updateCountText(eraseCount)
+            typingErrorsCount.text = "$currentTimestamp, $changes,$l"
         }
-        typingErrorsConsumer.onWordTypingEnd(s, eraseCount)
-    }
-
-    private fun updateCountText(eraseCount: Int) {
-        typingErrorsCount.text = activity!!.getString(R.string.typing_errors_count_text, eraseCount)
+        typingErrorsConsumer.onEvent(currentTimestamp, changes, l)
     }
 
 

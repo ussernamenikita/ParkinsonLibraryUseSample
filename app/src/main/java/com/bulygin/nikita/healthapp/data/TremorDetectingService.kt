@@ -34,10 +34,10 @@ class TremorDetectingService : Service() {
     }
 
     private fun initListener() {
-        if(tremorListener == null){
+        if (tremorListener == null) {
             return
         }
-        tremorListener = TremorListener(this, mDatabase!!.tremorDao())
+        tremorListener = TremorListener(this, mDatabase!!.getTremorDao())
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mAccelerometer = mSensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         mSensorManager!!.registerListener(tremorListener, mAccelerometer, SensorManager.SENSOR_DELAY_UI, Handler())

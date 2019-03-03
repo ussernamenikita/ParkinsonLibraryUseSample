@@ -1,31 +1,30 @@
-package com.bulygin.nikita.healthapp.data
+package ru.etu.parkinsonlibrary.rotation
 
+import android.app.Service
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
-import com.bulygin.nikita.healthapp.R
-import com.bulygin.nikita.healthapp.data.db.BaseDao
-import com.bulygin.nikita.healthapp.data.db.OrientationEntity
-import com.bulygin.nikita.healthapp.domain.IRotationDetectorRepository
-import com.bulygin.nikita.healthapp.domain.Orientation
 import io.reactivex.Observable
 import io.reactivex.Scheduler
+import ru.etu.parkinsonlibrary.R
+import ru.etu.parkinsonlibrary.database.BaseDao
+import ru.etu.parkinsonlibrary.database.OrientationEntity
+import ru.etu.parkinsonlibrary.database.consumer.BaseConsumer
+import java.util.concurrent.TimeUnit
+
+class RotationDetector(private val service: Service,
+                       dao: BaseDao<OrientationEntity>,
+                       scheduler: Scheduler,
+                       private val debounceParam: Long) : BaseConsumer<OrientationEntity>(dao, scheduler) {
 
 
-class RotationDetectorRepositoryAccelAndMagneticSensorImpl(private val activity: AppCompatActivity,
-                                                           dao: BaseDao<OrientationEntity>,
-                                                           scheduler: Scheduler) : IRotationDetectorRepository,
-        BaseConsumer<OrientationEntity>(dao, scheduler) {
-
-
-    private val sensorManager = activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    private val sensorManager = service.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val rotationSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
-    override fun getOrientation(): Observable<Array<Float>> {
+    fun getOrientation(): Observable<Array<Float>> {
         checkRotationSensor()
         var sensorEventListener: SensorEventListener? = null
         val sensorObs = Observable.create<Array<Float>> { emitter ->
@@ -47,7 +46,7 @@ class RotationDetectorRepositoryAccelAndMagneticSensorImpl(private val activity:
             sensorEventListener?.let {
                 sensorManager.unregisterListener(sensorEventListener)
             }
-        }
+        }.debounce(debounceParam, TimeUnit.MILLISECONDS)
     }
 
     private fun getDataFromSensors(rotationVector: FloatArray?): Array<Float>? {
@@ -76,43 +75,8 @@ class RotationDetectorRepositoryAccelAndMagneticSensorImpl(private val activity:
     private fun checkRotationSensor() {
         val sensors = sensorManager.getSensorList(Sensor.TYPE_ALL)
         if (sensors.find { it.type == Sensor.TYPE_ROTATION_VECTOR } == null) {
-            Toast.makeText(activity, activity.getString(R.string.no_sensor_detected_for_rotation_detection), Toast.LENGTH_LONG).show()
+            Toast.makeText(service, service.getString(R.string.no_sensor_detected_for_rotation_detection), Toast.LENGTH_LONG).show()
         }
     }
 
-    override fun saveOrientationToDatabase(orientation: Orientation) {
-        this.onNewItem(OrientationEntity(null, orientation.timestamp, orientation.x, orientation.y, orientation.z))
-    }
-
 }
-
-/*
-return Observable.create(subscriber -> {
-
-            val listener = SensorEventListener = {
-                @Override
-                public void onSensorChanged(SensorEvent event) {
-                    if (subscriber.isUnsubscribed()) {
-                        return;
-                    }
-
-                    subscriber.onNext(event);
-                }
-
-                @Override
-                public void onAccuracyChanged(Sensor sensor, int accuracy) {
-                    // NO-OP
-                }
-            };
-
-            sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_GAME)
-
-            // unregister listener in main thread when being unsubscribed
-            subscriber.add(new MainThreadSubscription() {
-                @Override
-                protected void onUnsubscribe() {
-                    sensorManager.unregisterListener(listener);
-                }
-            });
-        });
- */

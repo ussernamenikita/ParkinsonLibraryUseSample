@@ -1,8 +1,8 @@
-package com.bulygin.nikita.healthapp.data
+package ru.etu.parkinsonlibrary.database.consumer
 
-import com.bulygin.nikita.healthapp.data.db.BaseDao
 import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
+import ru.etu.parkinsonlibrary.database.BaseDao
 import java.util.concurrent.ConcurrentLinkedQueue
 
 open class BaseConsumer<T>(private val dao: BaseDao<T>,
