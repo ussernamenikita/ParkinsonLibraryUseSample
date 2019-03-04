@@ -10,7 +10,6 @@ import android.os.IBinder
 import android.support.annotation.RequiresApi
 import android.support.v4.app.NotificationCompat
 import io.reactivex.disposables.Disposable
-import ru.etu.parkinsonlibrary.database.OrientationEntity
 import ru.etu.parkinsonlibrary.di.DependencyProducer
 
 
@@ -26,21 +25,15 @@ class RotationDetectorService : Service() {
 
     private var rotationSubscription: Disposable? = null
 
-    private var currentOrientation: List<Int>? = null
-    private var lastOrientation: List<Int>? = null
 
     override fun onCreate() {
         super.onCreate()
         val module = DependencyProducer(this.application)
         val uiScheduler = module.getUIScheduler()
         val rotationDetector = module.getRotationDetector(this)
+        val consumer = module.getRotationConsumer()
         rotationSubscription = rotationDetector.getOrientation().observeOn(uiScheduler).subscribe({ result ->
-            currentOrientation = result.map { it.toInt() }
-            if (currentOrientation != lastOrientation) {
-                rotationDetector.onNewItem(OrientationEntity(null, System.currentTimeMillis(),
-                        currentOrientation!![0], currentOrientation!![1], currentOrientation!![2]))
-            }
-            lastOrientation = currentOrientation
+            consumer.onNewAngels(result)
         }, {
             it.printStackTrace()
             stopSelf()

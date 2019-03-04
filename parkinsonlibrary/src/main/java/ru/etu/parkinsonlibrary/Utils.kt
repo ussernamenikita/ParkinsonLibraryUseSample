@@ -25,6 +25,15 @@ fun getSymbolChanges(newText: CharSequence?,
     }
 }
 
+fun stringToCsv(seq: CharSequence): String {
+    val value = seq.replace(dbRegex, dbReplacement)
+    return if (value.contains(csvReservedWords)) {
+        "\"$value\""
+    } else {
+        value
+    }
+}
+
 fun getSize(seq: CharSequence?): Int {
     return if (seq == null || seq == "") {
         0
@@ -32,3 +41,7 @@ fun getSize(seq: CharSequence?): Int {
         seq.length
     }
 }
+
+val dbRegex = Regex("\"")
+const val dbReplacement = "\"\""
+val csvReservedWords = Regex("[\",;\n]")

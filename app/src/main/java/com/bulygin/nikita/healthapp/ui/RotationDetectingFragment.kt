@@ -33,7 +33,7 @@ class RotationDetectingFragment : Fragment() {
         val activity = (activity as MainActivity)
         activity.startService(Intent(activity, RotationDetectorService::class.java))
         uiScheduler = AndroidSchedulers.mainThread()
-        this.dao  = DependencyProducer(activity.application).getDatabase().getOrientatoinDao()
+        this.dao = DependencyProducer(activity.application).getDatabase().getOrientatoinDao()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,12 +49,12 @@ class RotationDetectingFragment : Fragment() {
         yValueTv = rootView.findViewById(R.id.rotation_detecting_y_tv)
         zValueTv = rootView.findViewById(R.id.rotation_detecting_z)
         rootView.findViewById<Button>(R.id.button2).setOnClickListener {
-            if(subscription == null || subscription!!.isDisposed){
+            if (subscription == null || subscription!!.isDisposed) {
                 subscription = dao.getAllSingle().subscribeOn(Schedulers.computation()).observeOn(uiScheduler).subscribe({
-                    for(item in it) {
+                    for (item in it) {
                         println(item)
                     }
-                },{
+                }, {
                     it.printStackTrace()
                 })
             }

@@ -13,6 +13,7 @@ import com.bulygin.nikita.healthapp.R
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import ru.etu.parkinsonlibrary.database.DatabaseHelper
 import ru.etu.parkinsonlibrary.database.consumer.DatabaseMissClickConsumer
 import ru.etu.parkinsonlibrary.di.DependencyProducer
 import ru.etu.parkinsonlibrary.missclick.MissClickEventsConsumer
@@ -33,6 +34,8 @@ class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBar
 
     private lateinit var uiScheduler: Scheduler
 
+    private lateinit var databaseHelper: DatabaseHelper
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.inject()
@@ -46,6 +49,7 @@ class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBar
         module = DependencyProducer(a.application)
         missClickConsumer = module.createDatabaseMissclickConsumer()
         uiScheduler = AndroidSchedulers.mainThread()
+        databaseHelper = module.getDatabaseHelper()
     }
 
     private lateinit var trackingViewGroup: TrackingViewGroup
@@ -72,7 +76,7 @@ class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBar
         updateMissClickCount(0)
         btn.setOnClickListener {
             if (outputDisposable == null || outputDisposable!!.isDisposed) {
-                outputDisposable = missClickConsumer.getAsCsv().observeOn(uiScheduler).subscribe({ res -> println(res) }, { t -> t.printStackTrace() })
+                outputDisposable = databaseHelper.getMissClicksAsCsv(false).observeOn(uiScheduler).subscribe({ res -> println(res) }, { t -> t.printStackTrace() })
             }
         }
         return rootView

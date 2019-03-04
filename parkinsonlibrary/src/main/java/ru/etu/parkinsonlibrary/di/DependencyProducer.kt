@@ -6,14 +6,22 @@ import android.content.Context
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import ru.etu.parkinsonlibrary.database.ParkinsonLibraryDatabase
+import ru.etu.parkinsonlibrary.database.*
 import ru.etu.parkinsonlibrary.database.consumer.DatabaseMissClickConsumer
+import ru.etu.parkinsonlibrary.database.consumer.DatabaseRotationConsumer
 import ru.etu.parkinsonlibrary.database.consumer.DatabaseTypingErrorConsumer
+import ru.etu.parkinsonlibrary.database.csv.EntityToCsv
+import ru.etu.parkinsonlibrary.database.csv.MissclickToCsv
+import ru.etu.parkinsonlibrary.database.csv.RotationEntityToCsv
+import ru.etu.parkinsonlibrary.database.csv.TypingErrorToCsv
 import ru.etu.parkinsonlibrary.rotation.RotationDetector
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Объект который создает зависимости
+ */
 class DependencyProducer(private val application: Application) {
 
     private var databaseInstance: ParkinsonLibraryDatabase? = null
@@ -48,10 +56,35 @@ class DependencyProducer(private val application: Application) {
     fun getThreadFactory(): ThreadFactory = NamedThreadFactory("ParkinsonLibrary")
 
     fun getRotationDetector(context: Context): RotationDetector {
-        return RotationDetector(context, getDatabase().getOrientatoinDao(), backGroundScheduler, 1000)
+        return RotationDetector(context, 1000)
     }
 
+    fun getRotationConsumer(): DatabaseRotationConsumer = DatabaseRotationConsumer(getDatabase().getOrientatoinDao(), backGroundScheduler)
+
+    fun getMissclickEntityToCSV(): EntityToCsv<MissClickEntity> = MissclickToCsv(getDatabase().missClickDao(), backGroundScheduler)
+
+    fun getTypingErrorToCSV(): EntityToCsv<TypingErrorEntity> = TypingErrorToCsv(getDatabase().typingErrorDao(), backGroundScheduler)
+
+    fun getRotationEntityToCSV(): EntityToCsv<OrientationEntity> = RotationEntityToCsv(getDatabase().getOrientatoinDao(), backGroundScheduler)
+
     fun getUIScheduler(): Scheduler = AndroidSchedulers.mainThread()
+    fun getDatabaseHelper(): DatabaseHelper {
+        val database = getDatabase()
+        val missClickDao = database.missClickDao()
+        val rotationDao = database.getOrientatoinDao()
+        val typingErrorDao = database.typingErrorDao()
+        val missClickToCsv = getMissclickEntityToCSV()
+        val errorTypingToCsv = getTypingErrorToCSV()
+        val rotationToCsv = getRotationEntityToCSV()
+        return DatabaseHelper(
+                missClickDao = missClickDao,
+                rotationDao = rotationDao,
+                typingErrorDao = typingErrorDao,
+                missClickToCsv = missClickToCsv,
+                errorTypingToCsv = errorTypingToCsv,
+                rotationToCsv = rotationToCsv,
+                backgroundScheduler = backGroundScheduler)
+    }
 }
 
 class NamedThreadFactory(private val mBaseName: String) : ThreadFactory {

@@ -7,20 +7,14 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.widget.Toast
 import io.reactivex.Observable
-import io.reactivex.Scheduler
 import ru.etu.parkinsonlibrary.R
-import ru.etu.parkinsonlibrary.database.BaseDao
-import ru.etu.parkinsonlibrary.database.OrientationEntity
-import ru.etu.parkinsonlibrary.database.consumer.BaseConsumer
 import java.util.concurrent.TimeUnit
 
 /**
  * Объект который работает с датчиком поворота
  */
 class RotationDetector(private val context: Context,
-                       dao: BaseDao<OrientationEntity>,
-                       scheduler: Scheduler,
-                       private val debounceParam: Long) : BaseConsumer<OrientationEntity>(dao, scheduler) {
+                       private val debounceParam: Long) {
 
 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager

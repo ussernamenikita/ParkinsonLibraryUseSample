@@ -3,6 +3,9 @@ package ru.etu.parkinsonlibrary.database
 import android.arch.persistence.room.*
 import io.reactivex.Single
 
+/**
+ * Конфигурация базы данных
+ */
 @Database(entities = [MissClickEntity::class,
     TypingErrorEntity::class,
 OrientationEntity::class], version = 2, exportSchema = false)
@@ -10,6 +13,7 @@ abstract class ParkinsonLibraryDatabase : RoomDatabase() {
     abstract fun missClickDao(): MissClickDao
     abstract fun typingErrorDao(): TypingErrorsDao
     abstract fun getOrientatoinDao():OrientationDao
+
 }
 
 @Dao
