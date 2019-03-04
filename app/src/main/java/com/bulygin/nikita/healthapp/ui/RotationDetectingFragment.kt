@@ -14,6 +14,7 @@ import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import ru.etu.parkinsonlibrary.database.DatabaseHelper
 import ru.etu.parkinsonlibrary.database.OrientationDao
 import ru.etu.parkinsonlibrary.di.DependencyProducer
 import ru.etu.parkinsonlibrary.rotation.RotationDetectorService
@@ -26,14 +27,14 @@ class RotationDetectingFragment : Fragment() {
     lateinit var mContext: Context
     lateinit var uiScheduler: Scheduler
 
-    private lateinit var dao: OrientationDao
+    private lateinit var databaseHelper: DatabaseHelper
 
     fun inject() {
         mContext = context!!
         val activity = (activity as MainActivity)
         activity.startService(Intent(activity, RotationDetectorService::class.java))
         uiScheduler = AndroidSchedulers.mainThread()
-        this.dao = DependencyProducer(activity.application).getDatabase().getOrientatoinDao()
+        this.databaseHelper = DependencyProducer(activity.application).getDatabaseHelper()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,9 +49,9 @@ class RotationDetectingFragment : Fragment() {
         xValueTv = rootView.findViewById(R.id.rotation_detecting_x_tv)
         yValueTv = rootView.findViewById(R.id.rotation_detecting_y_tv)
         zValueTv = rootView.findViewById(R.id.rotation_detecting_z)
-        rootView.findViewById<Button>(R.id.button2).setOnClickListener {
+        rootView.findViewById<Button>(R.id.button2).setOnClickListener { view ->
             if (subscription == null || subscription!!.isDisposed) {
-                subscription = dao.getAllSingle().subscribeOn(Schedulers.computation()).observeOn(uiScheduler).subscribe({
+                subscription = databaseHelper.getRotationAsCsv(false).subscribeOn(Schedulers.computation()).observeOn(uiScheduler).subscribe({
                     for (item in it) {
                         println(item)
                     }
