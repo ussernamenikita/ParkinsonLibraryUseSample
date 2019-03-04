@@ -3,7 +3,9 @@ package ru.etu.parkinsonlibrary.database
 import android.arch.persistence.room.*
 import io.reactivex.Single
 
-@Database(entities = [MissClickEntity::class, TypingErrorEntity::class], version = 2, exportSchema = false)
+@Database(entities = [MissClickEntity::class,
+    TypingErrorEntity::class,
+OrientationEntity::class], version = 2, exportSchema = false)
 abstract class ParkinsonLibraryDatabase : RoomDatabase() {
     abstract fun missClickDao(): MissClickDao
     abstract fun typingErrorDao(): TypingErrorsDao
@@ -60,9 +62,9 @@ interface TypingErrorsDao : BaseDao<TypingErrorEntity> {
 @Entity
 data class OrientationEntity(@PrimaryKey(autoGenerate = true) val id: Long? = null,
                              @ColumnInfo(name = "timestamp") val timestamp: Long,
-                             @ColumnInfo(name = "x") val x: Float,
-                             @ColumnInfo(name = "y") val y: Float,
-                             @ColumnInfo(name = "z") val z: Float)
+                             @ColumnInfo(name = "x") val x: Int,
+                             @ColumnInfo(name = "y") val y: Int,
+                             @ColumnInfo(name = "z") val z: Int)
 
 @Dao
 interface OrientationDao : BaseDao<OrientationEntity> {
@@ -72,5 +74,8 @@ interface OrientationDao : BaseDao<OrientationEntity> {
 
     @Query("SELECT * FROM OrientationEntity")
     fun getAll(): List<OrientationEntity>
+
+    @Query("SELECT * FROM OrientationEntity")
+    fun getAllSingle(): Single<List<OrientationEntity>>
 }
 

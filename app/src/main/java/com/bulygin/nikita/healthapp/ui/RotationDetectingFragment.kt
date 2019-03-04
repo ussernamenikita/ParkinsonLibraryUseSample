@@ -1,17 +1,22 @@
 package com.bulygin.nikita.healthapp.ui
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import com.bulygin.nikita.healthapp.R
-import com.bulygin.nikita.healthapp.domain.IRotationDetectorRepository
 import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import java.util.*
+import io.reactivex.schedulers.Schedulers
+import ru.etu.parkinsonlibrary.database.OrientationDao
+import ru.etu.parkinsonlibrary.di.DependencyProducer
+import ru.etu.parkinsonlibrary.rotation.RotationDetectorService
 
 class RotationDetectingFragment : Fragment() {
 
@@ -19,14 +24,16 @@ class RotationDetectingFragment : Fragment() {
     lateinit var yValueTv: TextView
     lateinit var zValueTv: TextView
     lateinit var mContext: Context
-    lateinit var rotationRepo: IRotationDetectorRepository
     lateinit var uiScheduler: Scheduler
+
+    private lateinit var dao: OrientationDao
 
     fun inject() {
         mContext = context!!
-        val module = (activity as MainActivity).module
-        this.rotationRepo = module.getRotationDetectorRepo()
-        uiScheduler = module.getUIScheduler()
+        val activity = (activity as MainActivity)
+        activity.startService(Intent(activity, RotationDetectorService::class.java))
+        uiScheduler = AndroidSchedulers.mainThread()
+        this.dao  = DependencyProducer(activity.application).getDatabase().getOrientatoinDao()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,14 +48,18 @@ class RotationDetectingFragment : Fragment() {
         xValueTv = rootView.findViewById(R.id.rotation_detecting_x_tv)
         yValueTv = rootView.findViewById(R.id.rotation_detecting_y_tv)
         zValueTv = rootView.findViewById(R.id.rotation_detecting_z)
+        rootView.findViewById<Button>(R.id.button2).setOnClickListener {
+            if(subscription == null || subscription!!.isDisposed){
+                subscription = dao.getAllSingle().subscribeOn(Schedulers.computation()).observeOn(uiScheduler).subscribe({
+                    for(item in it) {
+                        println(item)
+                    }
+                },{
+                    it.printStackTrace()
+                })
+            }
+        }
         updateValues(0.0, 0.0, 0.0)
-        subscription?.dispose()
-        subscription = rotationRepo.getOrientation().subscribeOn(uiScheduler).subscribe({
-
-            updateValues(it[0].toDouble(), it[1].toDouble(), it[2].toDouble())
-        }, {
-            it.printStackTrace()
-        })
         return rootView
     }
 

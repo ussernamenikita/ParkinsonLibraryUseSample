@@ -1,9 +1,10 @@
 package ru.etu.parkinsonlibrary.di
 
 import android.app.Application
-import android.app.Service
 import android.arch.persistence.room.Room
+import android.content.Context
 import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import ru.etu.parkinsonlibrary.database.ParkinsonLibraryDatabase
 import ru.etu.parkinsonlibrary.database.consumer.DatabaseMissClickConsumer
@@ -46,9 +47,11 @@ class DependencyProducer(private val application: Application) {
 
     fun getThreadFactory(): ThreadFactory = NamedThreadFactory("ParkinsonLibrary")
 
-    fun getRotationDetecotr(service: Service): RotationDetector {
-        return RotationDetector(service, getDatabase().getOrientatoinDao(), backGroundScheduler, 1000)
+    fun getRotationDetector(context: Context): RotationDetector {
+        return RotationDetector(context, getDatabase().getOrientatoinDao(), backGroundScheduler, 1000)
     }
+
+    fun getUIScheduler(): Scheduler = AndroidSchedulers.mainThread()
 }
 
 class NamedThreadFactory(private val mBaseName: String) : ThreadFactory {

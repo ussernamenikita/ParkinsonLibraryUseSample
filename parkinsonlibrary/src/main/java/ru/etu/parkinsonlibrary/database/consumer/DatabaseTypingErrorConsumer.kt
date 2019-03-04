@@ -5,10 +5,10 @@ import io.reactivex.Single
 import ru.etu.parkinsonlibrary.EntityToCsv
 import ru.etu.parkinsonlibrary.database.TypingErrorEntity
 import ru.etu.parkinsonlibrary.database.TypingErrorsDao
-import ru.etu.parkinsonlibrary.typingerror.TypingErrorTextListeer
+import ru.etu.parkinsonlibrary.typingerror.TypingErrorTextListener
 
 class DatabaseTypingErrorConsumer(private val typeErrorDao: TypingErrorsDao,
-                                  private val backgroundScheduler: Scheduler) : TypingErrorTextListeer.TypingErrorConsumer,
+                                  private val backgroundScheduler: Scheduler) : TypingErrorTextListener.TypingErrorConsumer,
         BaseConsumer<TypingErrorEntity>(typeErrorDao, backgroundScheduler), EntityToCsv<TypingErrorEntity> {
 
     override fun getAsCsv(): Single<String> {

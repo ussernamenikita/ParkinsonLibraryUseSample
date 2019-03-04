@@ -4,7 +4,17 @@ import android.text.Editable
 import android.text.TextWatcher
 import ru.etu.parkinsonlibrary.getSize
 
-class TypingErrorTextListeer(var consumer: TypingErrorConsumer? = null) : TextWatcher {
+/**
+ * TextWatcher который отслеживает изменение текста и передает эти изменения
+ * в [consumer] передается время события, в формате unix timestamp,
+ * символ который был напечатан или один из дополнительных символов:
+ * [eraseSymbol] - передается в [consumer] когда пользователь стер символ
+ * [eraseFewSymbols] - передается в [consumer] когда пользователь стер несколько символов( например выделал несколько символов и стер)
+ * [typeFewSymbol] - передается в [consumer] когда пользователь вставил несколько символов
+ * [emptySymbol] - когда система сообщила об изменении текста,
+ *      но сам текст не изменился ( может произойти когда пользователь вставит текст идентичный уже напечатоному в поле)
+ */
+class TypingErrorTextListener(var consumer: TypingErrorConsumer? = null) : TextWatcher {
 
     override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
 

@@ -10,9 +10,9 @@ import android.widget.TextView
 import com.bulygin.nikita.healthapp.R
 import ru.etu.parkinsonlibrary.database.consumer.DatabaseTypingErrorConsumer
 import ru.etu.parkinsonlibrary.di.DependencyProducer
-import ru.etu.parkinsonlibrary.typingerror.TypingErrorTextListeer
+import ru.etu.parkinsonlibrary.typingerror.TypingErrorTextListener
 
-class TypingErrorsFragment : Fragment(), TypingErrorTextListeer.TypingErrorConsumer {
+class TypingErrorsFragment : Fragment(), TypingErrorTextListener.TypingErrorConsumer {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,11 +28,11 @@ class TypingErrorsFragment : Fragment(), TypingErrorTextListeer.TypingErrorConsu
         if (activity is MainActivity) {
             this.module = DependencyProducer(activity!!.application)
         }
-        textListener = TypingErrorTextListeer(this)
+        textListener = TypingErrorTextListener(this)
         this.typingErrorsConsumer = module.createDatabaseTypingErrorConsumer()
     }
 
-    lateinit var textListener: TypingErrorTextListeer
+    lateinit var textListener: TypingErrorTextListener
 
     lateinit var typingErrorsConsumer: DatabaseTypingErrorConsumer
     private lateinit var typingErrorsCount: TextView

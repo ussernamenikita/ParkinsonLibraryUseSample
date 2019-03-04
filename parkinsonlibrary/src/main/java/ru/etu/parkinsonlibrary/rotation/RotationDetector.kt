@@ -1,6 +1,5 @@
 package ru.etu.parkinsonlibrary.rotation
 
-import android.app.Service
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -15,13 +14,16 @@ import ru.etu.parkinsonlibrary.database.OrientationEntity
 import ru.etu.parkinsonlibrary.database.consumer.BaseConsumer
 import java.util.concurrent.TimeUnit
 
-class RotationDetector(private val service: Service,
+/**
+ * Объект который работает с датчиком поворота
+ */
+class RotationDetector(private val context: Context,
                        dao: BaseDao<OrientationEntity>,
                        scheduler: Scheduler,
                        private val debounceParam: Long) : BaseConsumer<OrientationEntity>(dao, scheduler) {
 
 
-    private val sensorManager = service.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val rotationSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
     fun getOrientation(): Observable<Array<Float>> {
@@ -46,7 +48,7 @@ class RotationDetector(private val service: Service,
             sensorEventListener?.let {
                 sensorManager.unregisterListener(sensorEventListener)
             }
-        }.debounce(debounceParam, TimeUnit.MILLISECONDS)
+        }.throttleLast(debounceParam, TimeUnit.MILLISECONDS)
     }
 
     private fun getDataFromSensors(rotationVector: FloatArray?): Array<Float>? {
@@ -75,7 +77,7 @@ class RotationDetector(private val service: Service,
     private fun checkRotationSensor() {
         val sensors = sensorManager.getSensorList(Sensor.TYPE_ALL)
         if (sensors.find { it.type == Sensor.TYPE_ROTATION_VECTOR } == null) {
-            Toast.makeText(service, service.getString(R.string.no_sensor_detected_for_rotation_detection), Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.no_sensor_detected_for_rotation_detection), Toast.LENGTH_LONG).show()
         }
     }
 

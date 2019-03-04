@@ -136,6 +136,14 @@ class TrackingViewGroup : FrameLayout, MaxDistanceProvider {
     private val densityDivider: Float = context.resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT.toFloat()
 }
 
+/**
+ * Обертка над View для отслеживания косаний.
+ * Каждое view которое добавлено как отслеживаемое в [TrackingViewGroup] методом [TrackingViewGroup.addTrackedView],
+ * оборачивается в ViewTracker.
+ * Когда в TrackingViewGroup происходит косание, это косание передается
+ * всем имеющимся ViewTracked-ам.
+ * View трекер определяет на сколько близко было косание к элементу и было ли нажатие на сам отслеживаемый элемент
+ */
 class ViewTracker(val view: View,
                   private val trackingTimeout: Long,
                   private val maxDistanceProvider: MaxDistanceProvider,
