@@ -61,12 +61,29 @@ class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBar
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         this.rootView = inflater.inflate(R.layout.miss_click_fragment_layout, container, false)
         val btn = rootView.findViewById<Button>(R.id.button)
+        /**
+         * Берем [TrackingViewGroup] из лэйаута
+         */
         trackingViewGroup = rootView.findViewById(R.id.tracking_view)
+        /**
+         * Находим кнопку непопажание на которую нужно отслеживать
+         */
         val sw = rootView.findViewById<Switch>(R.id.miss_click_draw_bound_rect_sw)
         val seekBar = rootView.findViewById<SeekBar>(R.id.miss_click_max_difference_seek_bar)
         this.missClickResults = rootView.findViewById(R.id.tracjing_view_miss_click_count_tv)
         this.maxDistanceTv = rootView.findViewById(R.id.missclick_max_diff_tv)
+        /**
+         * Добавляем кнопку как отслеживаемую
+         */
         trackingViewGroup.addTrackedView(btn)
+        /**
+         * Задаем консьюмера,
+         * Можно сразу задать консьюмера из базы данных,
+         * тогда данные будут сразу писаться в базу
+         * ```
+         * trackingViewGroup.consumer = this.missClickConsumer
+         * ```
+         */
         trackingViewGroup.consumer = this
         sw.setOnCheckedChangeListener { _, isChecked ->
             trackingViewGroup.drawRect = isChecked
@@ -83,6 +100,9 @@ class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBar
     }
 
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+        /**
+         * Задаем дистанцию на которой отслеживается непоподание
+         */
         trackingViewGroup.maxDistanceValue = progress.toDouble()
         maxDistanceTv.text = activity?.getString(R.string.miss_click_max_diff_label_text, progress)
         trackingViewGroup.invalidate()
@@ -90,6 +110,9 @@ class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBar
 
     override fun onConsume(timestamp: Long, distance: Double, missClickCount: Int) {
         updateMissClickCount(missClickCount)
+        /**
+         * Передаем  дынные в базу
+         */
         this.missClickConsumer.onConsume(timestamp, distance, missClickCount)
     }
 
