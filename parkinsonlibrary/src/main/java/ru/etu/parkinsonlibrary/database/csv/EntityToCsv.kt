@@ -32,7 +32,7 @@ class MissclickToCsv(private val missClickDao: MissClickDao,
         return builder.toString()
     }
 
-    private fun toString(entity: MissClickEntity): String = "${entity.id},${entity.timestamp},${entity.distance}"
+    private fun toString(entity: MissClickEntity): String = "${entity.id},${entity.timestamp},${entity.distance},${entity.isMissClick}"
 }
 
 class TypingErrorToCsv(private val typeErrorDao: TypingErrorsDao,
@@ -71,7 +71,14 @@ class RotationEntityToCsv(private val dao: OrientationDao,
         return builder.toString()
     }
 
-    private fun toString(item: OrientationEntity) = "${item.id},${item.timestamp},${item.x},${item.y},${item.z}"
+    private fun toString(item: OrientationEntity) = "${item.id}," +
+            "${item.timestamp}," +
+            "${item.x}," +
+            "${item.y}," +
+            "${item.z}," +
+            "${item.latitude}"+
+            "${item.longitude}"+
+            "${item.altitude}"
 
     override fun getAsCsv(): Single<String> = dao.getAllSingle().observeOn(netScheduler).map { toCsv(it) }
 

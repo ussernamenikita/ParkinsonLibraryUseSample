@@ -1,11 +1,16 @@
 package ru.etu.parkinsonlibrary.di
 
+import android.app.Activity
 import android.app.Application
 import android.arch.persistence.room.Room
 import android.content.Context
+import android.support.v4.app.Fragment
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import ru.etu.parkinsonlibrary.coordinate.Callback
+import ru.etu.parkinsonlibrary.coordinate.LocationPermissionRequer
+import ru.etu.parkinsonlibrary.coordinate.LocationProvider
 import ru.etu.parkinsonlibrary.database.*
 import ru.etu.parkinsonlibrary.database.consumer.DatabaseMissClickConsumer
 import ru.etu.parkinsonlibrary.database.consumer.DatabaseRotationConsumer
@@ -59,7 +64,14 @@ class DependencyProducer(private val application: Application) {
         return RotationDetector(context, 1000)
     }
 
-    fun getRotationConsumer(): DatabaseRotationConsumer = DatabaseRotationConsumer(getDatabase().getOrientatoinDao(), backGroundScheduler)
+    fun getLocatinProvider():LocationProvider = LocationProvider(1000,application)
+
+    fun getLocationPermissionRequer(activity: Activity,callback:Callback):LocationPermissionRequer = LocationPermissionRequer(activity,callback)
+
+    fun getLocationPermissionRequer(fragment: Fragment,callback:Callback):LocationPermissionRequer = LocationPermissionRequer(fragment,callback)
+
+
+    fun getRotationDatabaseConsumer(): DatabaseRotationConsumer = DatabaseRotationConsumer(getDatabase().getOrientatoinDao(), backGroundScheduler)
 
     fun getMissclickEntityToCSV(): EntityToCsv<MissClickEntity> = MissclickToCsv(getDatabase().missClickDao(), backGroundScheduler)
 

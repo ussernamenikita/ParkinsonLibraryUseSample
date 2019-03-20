@@ -16,6 +16,7 @@ import io.reactivex.disposables.Disposable
 import ru.etu.parkinsonlibrary.database.DatabaseHelper
 import ru.etu.parkinsonlibrary.database.consumer.DatabaseMissClickConsumer
 import ru.etu.parkinsonlibrary.di.DependencyProducer
+import ru.etu.parkinsonlibrary.missclick.CloseTouchEvent
 import ru.etu.parkinsonlibrary.missclick.MissClickEventsConsumer
 import ru.etu.parkinsonlibrary.missclick.TrackingViewGroup
 
@@ -108,12 +109,11 @@ class MissClickFragment : Fragment(), MissClickEventsConsumer, SeekBar.OnSeekBar
         trackingViewGroup.invalidate()
     }
 
-    override fun onConsume(timestamp: Long, distance: Double, missClickCount: Int) {
-        updateMissClickCount(missClickCount)
+    override fun onConsume(timestamp: Long, clickDistanceFromCenter: Double, closeEvents: ArrayList<CloseTouchEvent>) {
         /**
          * Передаем  дынные в базу
          */
-        this.missClickConsumer.onConsume(timestamp, distance, missClickCount)
+        this.missClickConsumer.onConsume(timestamp, clickDistanceFromCenter, closeEvents)
     }
 
 

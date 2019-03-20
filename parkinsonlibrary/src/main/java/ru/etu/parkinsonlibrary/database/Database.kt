@@ -26,7 +26,8 @@ interface BaseDao<T> {
 @Entity
 data class MissClickEntity(@PrimaryKey(autoGenerate = true) val id: Long? = 0L,
                            @ColumnInfo(name = "timestamp") var timestamp: Long,
-                           @ColumnInfo(name = "distance") var distance: Double)
+                           @ColumnInfo(name = "distance") var distance: Double,
+                           @ColumnInfo(name = "isMissClick") var isMissClick:Boolean)
 
 @Dao
 interface MissClickDao : BaseDao<MissClickEntity> {
@@ -66,9 +67,12 @@ interface TypingErrorsDao : BaseDao<TypingErrorEntity> {
 @Entity
 data class OrientationEntity(@PrimaryKey(autoGenerate = true) val id: Long? = null,
                              @ColumnInfo(name = "timestamp") val timestamp: Long,
-                             @ColumnInfo(name = "x") val x: Int,
-                             @ColumnInfo(name = "y") val y: Int,
-                             @ColumnInfo(name = "z") val z: Int)
+                             @ColumnInfo(name = "pitch") val x: Int,
+                             @ColumnInfo(name = "azimut") val y: Int,
+                             @ColumnInfo(name = "roll") val z: Int,
+                             @ColumnInfo(name = "latitude") val latitude: Double?,
+                             @ColumnInfo(name = "longitude") val longitude: Double?,
+                             @ColumnInfo(name = "altitude") val altitude: Double?)
 
 @Dao
 interface OrientationDao : BaseDao<OrientationEntity> {

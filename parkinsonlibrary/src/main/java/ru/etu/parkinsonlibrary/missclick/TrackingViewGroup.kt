@@ -69,7 +69,8 @@ class TrackingViewGroup : FrameLayout, MaxDistanceProvider {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes) {
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) :
+            super(context, attrs, defStyleAttr, defStyleRes) {
         initialize(context)
     }
 
@@ -150,13 +151,10 @@ class ViewTracker(val view: View,
                   var missClickConsumer: MissClickEventsConsumer?) : Runnable {
 
     override fun run() {
-        clearOldEvents()
+        closeEvents = clearOldEvents(closeEvents, trackingTimeout, System.currentTimeMillis())
     }
 
-    private fun clearOldEvents() {
-        val maxOlderTime = System.currentTimeMillis() - trackingTimeout
-        closeEvents = ArrayList(closeEvents.filter { it.timestamp > maxOlderTime })
-    }
+    fun clearOldEvents(list: ArrayList<CloseTouchEvent>, timeout: Long, currentTime: Long): ArrayList<CloseTouchEvent> = ArrayList(list.filter { it.timestamp < currentTime - timeout })
 
     private val densityDivider: Float = view.context.resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT.toFloat()
 
@@ -171,16 +169,17 @@ class ViewTracker(val view: View,
     fun onMotionEvent(event: MotionEvent) {
         val isEventOnView = isOnView(view, event)
         val timeStamp = getCurrentTime()
+        val currentDistance = getDistanceFromViewInDpi(event)
         if (isEventOnView) {
             if (isClickOnView(event)) {
                 if (isHasCloseEvents(timeStamp)) {
-                    missClickConsumer?.onConsume(getCurrentTime(), getAverageDitance(), getMissClickCount(timeStamp))
+                    missClickConsumer?.onConsume(getCurrentTime(), getDistanceFromCenter(view, event), getCloseEvents(timeStamp))
                 }
                 closeEvents.clear()
             }
             lastAction = event.action
         } else {
-            val currentDistance = getDistanceFromViewInDpi(event)
+
             val currentTime = getCurrentTime()
             if (currentDistance <= maxDistanceProvider.getMaxDistance() && currentTime - lastAddedActionTimestamp >= 100L) {
                 if (handler == null) {
@@ -189,10 +188,21 @@ class ViewTracker(val view: View,
                 handler!!.removeCallbacks(this)
                 handler!!.postDelayed(this, trackingTimeout)
                 this.lastAddedActionTimestamp = currentTime
-                closeEvents.add(CloseTouchEvent(currentTime, currentDistance))
+                closeEvents.add(CloseTouchEvent(currentTime, getDistanceFromCenter(view, event)))
             }
         }
     }
+
+    private fun getDistanceFromCenter(view: View, event: MotionEvent): Double {
+        val viewRect = Rect()
+        this.getViewRect(viewRect, view)
+        val viewCenter = Point(viewRect.centerX(), viewRect.centerY())
+        val eventPoint = Point(getXFromEvent(event), getYFromEvent(event))
+        return inDpi(dist(PointF(viewCenter), PointF(eventPoint)))
+    }
+
+    private fun getCloseEvents(timeStamp: Long): ArrayList<CloseTouchEvent> =
+            ArrayList(closeEvents.filter { timeStamp - it.timestamp < trackingTimeout })
 
     private fun getDistanceFromViewInDpi(event: MotionEvent): Double {
         val rect = Rect()
@@ -244,22 +254,6 @@ class ViewTracker(val view: View,
         return Math.sqrt(Math.pow((a.x - b.x).toDouble(), 2.0) + Math.pow((a.y - b.y).toDouble(), 2.0))
     }
 
-    private fun getMissClickCount(timestamp: Long): Int {
-        var count = 0
-        for (event in closeEvents) {
-            count += if (timestamp - event.timestamp < trackingTimeout) 1 else 0
-        }
-        return count
-    }
-
-
-    private fun getAverageDitance(): Double {
-        var average = 0.0
-        for (value in closeEvents) {
-            average += value.distance / closeEvents.size
-        }
-        return average
-    }
 
     private fun getCurrentTime(): Long = System.currentTimeMillis()
 
@@ -293,9 +287,10 @@ interface MaxDistanceProvider {
 }
 
 interface MissClickEventsConsumer {
-    fun onConsume(timestamp: Long, distance: Double, missClickCount: Int)
+    fun onConsume(timestamp: Long, clickDistanceFromCenter: Double, closeEvents: ArrayList<CloseTouchEvent>)
 }
 
 data class CloseTouchEvent(val timestamp: Long,
-                           val distance: Double)
+                           val distanceFromCenter: Double)
+
 

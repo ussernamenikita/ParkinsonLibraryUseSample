@@ -5,11 +5,15 @@ import android.app.NotificationChannel
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import android.os.Build
 import android.os.IBinder
 import android.support.annotation.RequiresApi
 import android.support.v4.app.NotificationCompat
 import io.reactivex.disposables.Disposable
+import ru.etu.parkinsonlibrary.coordinate.LocationConsumer
+import ru.etu.parkinsonlibrary.coordinate.LocationProvider
+import ru.etu.parkinsonlibrary.database.consumer.DatabaseRotationConsumer
 import ru.etu.parkinsonlibrary.di.DependencyProducer
 
 
@@ -21,17 +25,27 @@ import ru.etu.parkinsonlibrary.di.DependencyProducer
  * т.е его углы наклона не меняются, то данные в базу не сохраняются.
  * то данные не записываются в базу
  */
-class RotationDetectorService : Service() {
+class RotationDetectorService : Service(){
+
+
+    companion object {
+        const val LOCATION_PERMISSIONS_KEY = "LOCATION_PERMISSIONS_KEY"
+    }
 
     private var rotationSubscription: Disposable? = null
 
+
+    private lateinit var locationProvider: LocationProvider
+
+    private lateinit var consumer: DatabaseRotationConsumer
 
     override fun onCreate() {
         super.onCreate()
         val module = DependencyProducer(this.application)
         val uiScheduler = module.getUIScheduler()
         val rotationDetector = module.getRotationDetector(this)
-        val consumer = module.getRotationConsumer()
+        this.consumer = module.getRotationDatabaseConsumer()
+        this.locationProvider = module.getLocatinProvider()
         rotationSubscription = rotationDetector.getOrientation().observeOn(uiScheduler).subscribe({ result ->
             consumer.onNewAngels(result)
         }, {
@@ -62,12 +76,17 @@ class RotationDetectorService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        if(intent?.getBooleanExtra(LOCATION_PERMISSIONS_KEY,false) == true){
+            locationProvider.startTrackingLocation(this )
+            locationProvider.consumer = consumer
+        }
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
         rotationSubscription?.dispose()
+        locationProvider.stopTrackingLocation()
         val broadcastIntent = Intent("ru.etu.parkinsonlibrary.rotation.RestartRotationServiceReceiver")
         sendBroadcast(broadcastIntent)
     }
